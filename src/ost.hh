@@ -79,6 +79,7 @@ namespace order_statistic_tree {
         if (grandson != nullptr) {
             grandson -> parent = node; 
         }
+        // son -> parent = node -> parent; 
         node -> parent = son; 
         instantUpdateSize(tree, node); 
         instantUpdateSize(tree, son); 
@@ -93,6 +94,7 @@ namespace order_statistic_tree {
         if (grandson != nullptr) {
             grandson -> parent = node; 
         }
+        // son -> parent = node -> parent; 
         node -> parent = son; 
         instantUpdateSize(tree, node); 
         instantUpdateSize(tree, son); 
@@ -177,6 +179,99 @@ namespace order_statistic_tree {
 
     auto height(auto tree) {
         return height_impl(tree, tree->root);  
+    }
+
+    auto delete_direct_impl(auto tree, auto node, auto ret_val) {
+        auto current = node; 
+        auto par = node -> parent; 
+        if (ret_val) {
+            *ret_val = node -> value;  
+        }
+        if (node -> son[0] != nullptr) {
+            current = node -> son[0]; 
+        } else {
+            current = node -> son[1]; 
+        }
+        if (par == nullptr) {
+            tree -> root = current; 
+            if (current != nullptr) {
+                current -> parent = nullptr; 
+            }
+        } else {
+            if (par -> son[0] == node) {
+                par -> son[0] = current; 
+            } else {
+                par -> son[1] = current; 
+            }
+            if (current != nullptr) {
+                current -> parent = par; 
+            } 
+        }
+        current = par; 
+        while (current != nullptr) {
+            par = current -> parent; 
+            auto to_change = par == nullptr ? &tree -> root : (par -> son[0] == current ? &par -> son[0] : &par -> son[1]); 
+            instantUpdateSize(tree, current); 
+            auto limitation = current -> size / 4; 
+            if (size_impl(current->son[0]) < limitation) {
+                current = *to_change = rotate_left(tree, current); 
+            } else if (size_impl(current->son[1]) < limitation) {
+                current = *to_change = rotate_right(tree, current); 
+            } 
+            current -> parent = par; 
+            current = par; 
+        } 
+    }
+
+    auto swap_without_value(auto tree, auto node, auto node2) {
+        auto node_par = node -> parent; 
+        auto node_par_link = node_par == nullptr ? &tree -> root : (node_par -> son[0] == node ? &node_par -> son[0] : &node_par -> son[1]); 
+        auto node2_par = node2 -> parent; 
+        auto node2_par_link = node2_par == nullptr ? &tree -> root : (node2_par -> son[0] == node2 ? &node2_par -> son[0] : &node2_par -> son[1]); 
+        node -> parent = node2_par; 
+        *node2_par_link = node; 
+        node2 -> parent = node_par; 
+        *node_par_link = node2; 
+        auto node_sons0 = node -> son[0]; 
+        auto node_sons1 = node -> son[1]; 
+        node -> son[0] = node2 -> son[0]; 
+        node -> son[1] = node2 -> son[1]; 
+        node2 -> son[0] = node_sons0; 
+        node2 -> son[1] = node_sons1; 
+        auto s = node -> size; 
+        node -> size = node2 -> size; 
+        node2 -> size = s; 
+    }
+
+    auto delete_impl(auto tree, auto node, auto ret_val) {
+        if (node -> son[0] != nullptr && node -> son[1] != nullptr) {
+            auto current = node -> son[1]; 
+            while (current -> son[0] != nullptr) {
+                current = current -> son[0]; 
+            }
+            swap_without_value(tree, node, current); 
+        }
+        delete_direct_impl(tree, node, ret_val); 
+    }
+
+    auto delete_at(auto tree, auto index, auto ret_val) {
+        auto node = query_impl(tree, tree->root, index); 
+        delete_impl(tree, node, ret_val); 
+    }
+
+    auto delete_first(auto tree, auto ret_val) {
+        delete_at(tree, 0, ret_val);  
+    }
+
+    auto delete_last(auto tree, auto ret_val) {
+        delete_at(tree, size(tree) - 1, ret_val); 
+    }
+
+    auto set_at(auto tree, auto index, auto value) {
+        auto node = query_impl(tree, tree->root, index); 
+        auto src = node -> value; 
+        node -> value = value;  
+        return src; 
     }
 
 }

@@ -15,6 +15,9 @@ int main() {
         printf("2: insert [index] [data]\n");
         printf("3: query [index]\n");
         printf("4: query all\n");
+        printf("5: delete first & display\n"); 
+        printf("6: delete last & display\n");
+        printf("7: delete [index] & display\n"); 
         r = scanf("%d", &s); 
         if (r != 1) return EXIT_FAILURE; 
         if (s == 0) {
@@ -52,6 +55,32 @@ int main() {
                 printf("%d ", x); 
             }
             printf("\n"); 
+        } else if (s == 5) {
+            if (ost::size(tree) == 0) {
+                printf("DELETE EMPTY\n"); 
+            } else {
+                int val; 
+                ost::delete_first(tree, &val); 
+                printf("DELETE FIRST: %d\n", val); 
+            }
+        } else if (s == 6) {
+            if (ost::size(tree) == 0) {
+                printf("DELETE EMPTY\n"); 
+            } else {
+                int val; 
+                ost::delete_last(tree, &val); 
+                printf("DELETE LAST: %d\n", val); 
+            }
+        } else if (s == 7) {
+            r = scanf("%d", &a); 
+            if (r != 1) return EXIT_FAILURE; 
+            if (ost::size(tree) <= a) {
+                printf("DELETE Out of Bound\n"); 
+            } else {
+                int val; 
+                ost::delete_at(tree, a, &val); 
+                printf("DELETE [%d] = %d\n", a, val); 
+            }
         } else {
             printf("Invalid Command\n"); 
         }
