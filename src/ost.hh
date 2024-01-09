@@ -124,7 +124,7 @@ namespace order_statistic_tree {
     }
 
     auto insert_first(auto tree, auto value, auto allocator) {
-        insert(tree, 0, value, allocator); 
+        insert(tree, (size_t ) 0, value, allocator); 
     } 
 
     auto query_impl(auto tree, auto node, auto idx) {
@@ -175,7 +175,7 @@ namespace order_statistic_tree {
     auto delete_direct_impl(auto tree, auto node, auto ret_val) {
         auto current = node; 
         auto par = node -> parent; 
-        if (ret_val) {
+        if (ret_val != nullptr) {
             *ret_val = node -> value;  
         }
         if (node -> son[0] != nullptr) {
@@ -252,7 +252,7 @@ namespace order_statistic_tree {
     }
 
     auto delete_first(auto tree, auto ret_val, auto deleter) {
-        delete_at(tree, 0, ret_val, deleter);  
+        delete_at(tree, (size_t ) 0, ret_val, deleter);  
     }
 
     auto delete_last(auto tree, auto ret_val, auto deleter) {
@@ -270,8 +270,8 @@ namespace order_statistic_tree {
         if (node == nullptr) {
             return ; 
         }
-        destroy_impl(node->son[0]); 
-        destroy_impl(node->son[1]); 
+        destroy_impl(node->son[0], deleter); 
+        destroy_impl(node->son[1], deleter); 
         deleter(node); 
     }
 
