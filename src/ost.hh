@@ -35,7 +35,7 @@ namespace order_statistic_tree {
     auto new_node(auto tree, auto value) {
         using TreeVal = decltype(*tree); 
         using TreeDecay = std::decay_t<TreeVal>;
-        auto node = new typename TreeDecay::Node(); 
+        auto node = new typename TreeDecay::Node; 
         node->value = value; 
         node->size = 1; 
         node->son[0] = node->son[1] = nullptr; 
@@ -243,6 +243,7 @@ namespace order_statistic_tree {
             swap_without_value(tree, node, current); 
         }
         delete_direct_impl(tree, node, ret_val); 
+        delete node; 
     }
 
     auto delete_at(auto tree, auto index, auto ret_val) {
