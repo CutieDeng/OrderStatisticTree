@@ -32,10 +32,10 @@ namespace order_statistic_tree {
         return tree; 
     }
 
-    auto new_node(auto tree, auto value) {
+    auto new_node(auto tree, auto value, auto allocator) {
         using TreeVal = decltype(*tree); 
         using TreeDecay = std::decay_t<TreeVal>;
-        auto node = new typename TreeDecay::Node; 
+        auto node = allocator.template operator()<typename TreeDecay::Node>(); 
         node->value = value; 
         node->size = 1; 
         node->son[0] = node->son[1] = nullptr; 
@@ -92,16 +92,16 @@ namespace order_statistic_tree {
         return son; 
     } 
 
-    auto insert_impl(auto tree, auto node, auto index, auto value) {
+    auto insert_impl(auto tree, auto node, auto index, auto value, auto allocator) {
         if (node == nullptr) {
-            return new_node(tree, value); 
+            return new_node(tree, value, allocator); 
         } 
         auto left_size = size_impl(node->son[0]); 
         decltype(node) update; 
         if (index <= left_size) {
-            update = node->son[0] = insert_impl(tree, node->son[0], index, value); 
+            update = node->son[0] = insert_impl(tree, node->son[0], index, value, allocator); 
         } else {
-            update = node->son[1] = insert_impl(tree, node->son[1], index - left_size - 1, value); 
+            update = node->son[1] = insert_impl(tree, node->son[1], index - left_size - 1, value, allocator); 
         } 
         update -> parent = node; 
         node -> size += 1; 
@@ -114,17 +114,17 @@ namespace order_statistic_tree {
         return node; 
     }
 
-    auto insert(auto tree, auto index, auto value) {
-        tree->root = insert_impl(tree, tree->root, index, value); 
+    auto insert(auto tree, auto index, auto value, auto allocator) {
+        tree->root = insert_impl(tree, tree->root, index, value, allocator); 
         tree->root->parent = nullptr; 
     }
 
-    auto insert_last(auto tree, auto value) {
-        insert(tree, size(tree), value); 
+    auto insert_last(auto tree, auto value, auto allocator) {
+        insert(tree, size(tree), value, allocator); 
     }
 
-    auto insert_first(auto tree, auto value) {
-        insert(tree, 0, value); 
+    auto insert_first(auto tree, auto value, auto allocator) {
+        insert(tree, 0, value, allocator); 
     } 
 
     auto query_impl(auto tree, auto node, auto idx) {
@@ -234,7 +234,7 @@ namespace order_statistic_tree {
         node2 -> size = s; 
     }
 
-    auto delete_impl(auto tree, auto node, auto ret_val) {
+    auto delete_impl(auto tree, auto node, auto ret_val, auto deleter) {
         if (node -> son[0] != nullptr && node -> son[1] != nullptr) {
             auto current = node -> son[1]; 
             while (current -> son[0] != nullptr) {
@@ -243,20 +243,20 @@ namespace order_statistic_tree {
             swap_without_value(tree, node, current); 
         }
         delete_direct_impl(tree, node, ret_val); 
-        delete node; 
+        deleter(node); 
     }
 
-    auto delete_at(auto tree, auto index, auto ret_val) {
+    auto delete_at(auto tree, auto index, auto ret_val, auto deleter) {
         auto node = query_impl(tree, tree->root, index); 
-        delete_impl(tree, node, ret_val); 
+        delete_impl(tree, node, ret_val, deleter); 
     }
 
-    auto delete_first(auto tree, auto ret_val) {
-        delete_at(tree, 0, ret_val);  
+    auto delete_first(auto tree, auto ret_val, auto deleter) {
+        delete_at(tree, 0, ret_val, deleter);  
     }
 
-    auto delete_last(auto tree, auto ret_val) {
-        delete_at(tree, size(tree) - 1, ret_val); 
+    auto delete_last(auto tree, auto ret_val, auto deleter) {
+        delete_at(tree, size(tree) - 1, ret_val, deleter); 
     }
 
     auto set_at(auto tree, auto index, auto value) {
@@ -264,6 +264,19 @@ namespace order_statistic_tree {
         auto src = node -> value; 
         node -> value = value;  
         return src; 
+    }
+
+    auto destroy_impl(auto node, auto deleter) {
+        if (node == nullptr) {
+            return ; 
+        }
+        destroy_impl(node->son[0]); 
+        destroy_impl(node->son[1]); 
+        deleter(node); 
+    }
+
+    auto destroy(auto tree, auto deleter) {
+        destroy_impl(tree->root, deleter); 
     }
 
 }
