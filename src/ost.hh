@@ -5,16 +5,11 @@
 
 namespace order_statistic_tree {
 
-    struct NullDeleter { 
-        void operator() (auto ) { } 
-    }; 
-
-    template <typename T, typename Deleter_ = NullDeleter> 
+    template <typename T> 
     struct WeightBalancedTree {
 
         using size_t = size_t;  
         using DataType = T; 
-        using Deleter = Deleter_; 
 
         struct Node {
             T value; 
@@ -22,9 +17,6 @@ namespace order_statistic_tree {
             Node *son[2]; 
             Node *parent; 
         }; 
-
-        [[no_unique_address]]
-        Deleter deleter;  
 
         Node *root; 
 
@@ -36,7 +28,6 @@ namespace order_statistic_tree {
     template <typename T>
     WeightBalancedTree<T> *default_tree() {
         auto tree = new WeightBalancedTree<T>; 
-        tree->deleter = {}; 
         tree->root = nullptr;  
         return tree; 
     }
